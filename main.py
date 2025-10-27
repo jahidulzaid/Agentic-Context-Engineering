@@ -48,7 +48,7 @@ async def root():
     <html>
     <head>
         <title>ACE-ADK - Agentic Context Engineering</title>
-        <meta http-equiv="refresh" content="0; url=/dev-ui/?app=ace_agent">
+        <meta http-equiv="refresh" content="0; url=/dev-ui/?app=ACE_Agent">
         <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;

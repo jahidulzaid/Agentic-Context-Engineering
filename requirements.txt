@@ -1,0 +1,10 @@
+# ACE-ADK Requirements
+# Core dependencies for the Agentic Context Engineering application
+
+# Main framework - includes FastAPI, uvicorn, and all Google Cloud dependencies
+google-adk>=1.16.0
+
+# Configuration management
+pydantic>=2.12.3
+pydantic-settings>=2.11.0
+python-dotenv>=1.2.1
