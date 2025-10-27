@@ -32,7 +32,6 @@ env/
 .env.production
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -69,3 +68,6 @@ coverage.xml
 # ADK specific
 .adk/
 *.adk
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
