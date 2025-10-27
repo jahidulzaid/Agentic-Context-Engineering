@@ -143,9 +143,7 @@ agentic-context-engineering/
 │           ├── generator.py         # Answer generation
 │           ├── reflector.py         # Quality analysis
 │           └── curator.py           # Playbook updates
-└── docs/
-    ├── UI_IMPROVEMENTS.md
-    └── FINAL_ANSWER_FEATURE.md
+└── .gitignore                       # Git ignore patterns
 ```
 
 ## Configuration
