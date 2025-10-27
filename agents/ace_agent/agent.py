@@ -72,9 +72,9 @@ class CycleSummary(BaseAgent):
         num_operations = len(operations)
         
         summary = f"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {final_answer}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Sections: {stats['sections']}
 Total Bullets: {stats['bullets']}
@@ -82,7 +82,7 @@ Helpful Tags: {stats['tags']['helpful']}
 Harmful Tags: {stats['tags']['harmful']}
 Neutral Tags: {stats['tags']['neutral']}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 The playbook continues to evolve and improve with each interaction!
 """
         

@@ -96,13 +96,11 @@ class FinalAnswerDisplay(BaseAgent):
         
         # Create a beautifully formatted final answer display
         answer_display = f"""
-╔══════════════════════════════════════════════════════════════╗
-║                      FINAL ANSWER                            ║
-╚══════════════════════════════════════════════════════════════╝
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {output.final_answer}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Reasoning Steps: {len(output.reasoning)}
 Playbook Bullets Used: {len(output.bullet_ids)}
