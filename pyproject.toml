@@ -1,15 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "ace-adk"
 version = "0.1.0"
-description = "Add your description here"
+description = "Agentic Context Engineering - Agent Development Kit for self-improving AI agents"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Jahidul Islam", email = "jahidul.cse.gub@gmail.com"}
+]
+keywords = ["ai", "agents", "llm", "google-adk", "context-engineering", "machine-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "google-adk>=1.16.0",
+    "fastapi>=0.120.1",
+    "uvicorn>=0.38.0",
+    "pydantic>=2.12.3",
+    "pydantic-settings>=2.11.0",
+    "python-dotenv>=1.2.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jahidulzaid/Agentic-Context-Engineering"
+Documentation = "https://github.com/jahidulzaid/Agentic-Context-Engineering#readme"
+Repository = "https://github.com/jahidulzaid/Agentic-Context-Engineering.git"
+Issues = "https://github.com/jahidulzaid/Agentic-Context-Engineering/issues"
+
+[project.scripts]
+ace-adk = "main:main"
 
 [dependency-groups]
 dev = [
     "ipykernel>=7.0.1",
     "ruff>=0.14.1",
+    "build>=1.0.0",
+    "twine>=4.0.0",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agents"]
