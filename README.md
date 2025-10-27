@@ -5,6 +5,7 @@ A self-improving AI agent system that learns through iterative cycles of generat
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Google ADK](https://img.shields.io/badge/Google-ADK-4285F4.svg)](https://github.com/google/adk)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![ACE-ADK CI/CD](https://github.com/jahidulzaid/Agentic-Context-Engineering/actions/workflows/python-app.yml/badge.svg)](https://github.com/jahidulzaid/Agentic-Context-Engineering/actions/workflows/python-app.yml)
 
 ## Overview
 
