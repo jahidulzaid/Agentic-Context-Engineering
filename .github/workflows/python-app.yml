@@ -38,19 +38,19 @@ jobs:
     
     - name: Check Python syntax
       run: |
-        python -m py_compile main.py config.py
-        python -m py_compile agents/ace_agent/*.py
-        python -m py_compile agents/ace_agent/sub_agents/*.py
-        python -m py_compile agents/ace_agent/schemas/*.py
+        uv run python -m py_compile main.py config.py
+        uv run python -m py_compile agents/ace_agent/*.py
+        uv run python -m py_compile agents/ace_agent/sub_agents/*.py
+        uv run python -m py_compile agents/ace_agent/schemas/*.py
     
     - name: Verify imports
       run: |
-        python -c "import main; import config"
-        python -c "from agents.ace_agent import root_agent"
+        uv run python -c "import main; import config"
+        uv run python -c "from agents.ace_agent import root_agent"
     
     - name: Check for syntax errors in all Python files
       run: |
-        find . -name "*.py" -not -path "./.venv/*" -not -path "./build/*" | xargs python -m py_compile
+        find . -name "*.py" -not -path "./.venv/*" -not -path "./build/*" | xargs -n 1 uv run python -m py_compile
 
   build:
     runs-on: ubuntu-latest
