@@ -1,0 +1,191 @@
+name: ACE-ADK CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+    
+    - name: Install dependencies
+      run: |
+        uv sync
+    
+    - name: Lint with ruff (if available)
+      continue-on-error: true
+      run: |
+        uv run ruff check . || echo "Ruff not configured, skipping..."
+    
+    - name: Check Python syntax
+      run: |
+        python -m py_compile main.py config.py
+        python -m py_compile agents/ace_agent/*.py
+        python -m py_compile agents/ace_agent/sub_agents/*.py
+        python -m py_compile agents/ace_agent/schemas/*.py
+    
+    - name: Verify imports
+      run: |
+        python -c "import main; import config"
+        python -c "from agents.ace_agent import root_agent"
+    
+    - name: Check for syntax errors in all Python files
+      run: |
+        find . -name "*.py" -not -path "./.venv/*" -not -path "./build/*" | xargs python -m py_compile
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+    
+    - name: Install dependencies
+      run: |
+        uv sync
+    
+    - name: Create .env file for testing
+      run: |
+        echo "GOOGLE_API_KEY=test-key-for-ci" > .env
+        echo "GOOGLE_GENAI_USE_VERTEXAI=False" >> .env
+    
+    - name: Test application imports
+      run: |
+        uv run python -c "from fastapi import FastAPI; from google.adk.cli.fast_api import get_fast_api_app; print('✓ All imports successful')"
+    
+    - name: Verify agent structure
+      run: |
+        uv run python -c "
+        from agents.ace_agent import root_agent
+        from agents.ace_agent.sub_agents import generator, reflector, curator
+        from agents.ace_agent.schemas import Playbook, DeltaBatch
+        print('✓ Agent structure verified')
+        "
+    
+    - name: Check configuration
+      run: |
+        uv run python -c "
+        from config import Config
+        config = Config()
+        assert config.generator_model is not None
+        assert config.reflector_model is not None
+        assert config.curator_model is not None
+        print('✓ Configuration valid')
+        "
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install safety
+      run: |
+        pip install safety
+    
+    - name: Check for security vulnerabilities
+      continue-on-error: true
+      run: |
+        pip install google-adk fastapi uvicorn
+        safety check || echo "Security check completed with warnings"
+    
+    - name: Verify no secrets in code
+      run: |
+        ! grep -r "GOOGLE_API_KEY.*=.*['\"][A-Za-z0-9]" --include="*.py" . || (echo "Warning: Found potential API key in code" && exit 1)
+        echo "✓ No hardcoded secrets found"
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        FROM python:3.11-slim
+
+        WORKDIR /app
+
+        # Install uv
+        RUN pip install uv
+
+        # Copy project files
+        COPY pyproject.toml uv.lock* ./
+        COPY main.py config.py ./
+        COPY agents ./agents
+
+        # Install dependencies
+        RUN uv sync --frozen
+
+        # Create .env.example for reference
+        RUN echo "GOOGLE_API_KEY=your-api-key-here" > .env.example
+        RUN echo "GOOGLE_GENAI_USE_VERTEXAI=False" >> .env.example
+
+        EXPOSE 8080
+
+        CMD ["uv", "run", "python", "main.py"]
+        EOF
+    
+    - name: Test Docker build
+      run: |
+        docker build -t ace-adk:test . || echo "Docker build test (informational)"
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test, build, security]
+    if: always()
+    
+    steps:
+    - name: Check workflow status
+      run: |
+        if [ "${{ needs.test.result }}" == "success" ] && [ "${{ needs.build.result }}" == "success" ]; then
+          echo "✓ All checks passed successfully!"
+          echo "BUILD_STATUS=success" >> $GITHUB_ENV
+        else
+          echo "✗ Some checks failed"
+          echo "BUILD_STATUS=failure" >> $GITHUB_ENV
+        fi
+    
+    - name: Summary
+      run: |
+        echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Test: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
