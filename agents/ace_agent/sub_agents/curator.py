@@ -16,7 +16,7 @@ config = Config()
 curator_ = Agent(
     name="Curator",
     model=config.curator_model,
-    description="Expert in curating playbooks.",
+    description="Expert playbook curator that adds new insights, updates existing strategies, and removes outdated or incorrect advice based on reflection results.",
     instruction="""You are an expert in curating playbooks.
 
 Considering the existing playbook and reflections from previous attempts:
@@ -124,6 +124,6 @@ playbook_updater = PlaybookUpdater(
 
 curator = SequentialAgent(
     name="Curator",
-    description="Execute Curator and PlaybookUpdater sequentially.",
+    description="Updates the playbook with new insights and removes outdated information.",
     sub_agents=[curator_, playbook_updater],
 )

@@ -50,7 +50,7 @@ class Reflection(BaseModel):
 reflector_ = Agent(
     name="Reflector",
     model=config.reflector_model,
-    description="Critically analyze errors and patterns to identify improvement points.",
+    description="Critically analyzes the Generator's output, identifies errors and patterns, and tags playbook bullets as helpful, harmful, or neutral.",
     instruction="""
 Your task is to carefully examine the generator's output, critically analyze it, and create a reflection (JSON).
 
@@ -133,6 +133,6 @@ tag_bullet = TagBullet(name="tag_bullet", description="Tags bullets.")
 
 reflector = SequentialAgent(
     name="Reflector",
-    description="Execute Reflector and TagBullet sequentially.",
+    description="Analyzes Generator output and tags playbook bullets for quality improvement.",
     sub_agents=[reflector_, tag_bullet],
 )

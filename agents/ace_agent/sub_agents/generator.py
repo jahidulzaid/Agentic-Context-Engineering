@@ -1,4 +1,9 @@
-from google.adk.agents import Agent
+from typing import AsyncGenerator
+
+from google.adk.agents import Agent, BaseAgent, SequentialAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event, EventActions
+from google.genai.types import Part, UserContent
 from pydantic import BaseModel, Field
 
 from config import Config
@@ -22,10 +27,10 @@ class GeneratorOutput(BaseModel):
 # ============================================
 # Generator: Generate answers and traces using playbook
 # ============================================
-generator = Agent(
+generator_ = Agent(
     name="Generator",
     model=config.generator_model,
-    description="Solve problems by referencing the playbook and return structured final answers.",
+    description="Generates high-quality answers by applying strategies from the learned playbook. References specific tactics and avoids known pitfalls.",
     instruction="""
 Your task is to answer user queries while providing structured step-by-step reasoning and the bullet IDs you used.
 
@@ -66,3 +71,64 @@ Input:
     disallow_transfer_to_parent=True,
     disallow_transfer_to_peers=True,
 )
+
+
+class FinalAnswerDisplay(BaseAgent):
+    """Display the final answer prominently to the user."""
+    
+    async def _run_async_impl(
+        self, ctx: InvocationContext
+    ) -> AsyncGenerator[Event, None]:
+        state = ctx.session.state
+        generator_output: dict | None = state.get("generator_output")
+        
+        if not generator_output:
+            yield Event(
+                author=self.name,
+                invocation_id=ctx.invocation_id,
+                content=UserContent(
+                    parts=[Part(text="No answer generated.")]
+                ),
+            )
+            return
+        
+        output = GeneratorOutput.model_validate(generator_output)
+        
+        # Create a beautifully formatted final answer display
+        answer_display = f"""
+╔══════════════════════════════════════════════════════════════╗
+║                      FINAL ANSWER                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+{output.final_answer}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reasoning Steps: {len(output.reasoning)}
+Playbook Bullets Used: {len(output.bullet_ids)}
+{f"Referenced: {', '.join(output.bullet_ids[:5])}" if output.bullet_ids else ""}
+{f"   ... and {len(output.bullet_ids) - 5} more" if len(output.bullet_ids) > 5 else ""}
+"""
+        
+        content = UserContent(parts=[Part(text=answer_display)])
+        
+        yield Event(
+            author=self.name,
+            invocation_id=ctx.invocation_id,
+            content=content,
+        )
+
+
+final_answer_display = FinalAnswerDisplay(
+    name="final_answer_display",
+    description="Displays the final answer prominently to the user."
+)
+
+
+# Wrap generator with final answer display
+generator = SequentialAgent(
+    name="Generator",
+    description="Generates answers and displays the final result prominently.",
+    sub_agents=[generator_, final_answer_display],
+)
+
